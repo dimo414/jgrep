@@ -1,9 +1,13 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A Grep-style in-file find utility.
@@ -11,10 +15,13 @@ import java.util.List;
  * @author Michael Diamond
  */
 public class Grep {
-	public static HashMap<File,ArrayList<GrepResult>> grep(File file, String pattern, FilenameFilter ff, boolean recursive){
+	private static final int MAX_LINES = 10;
+	public static HashMap<File,ArrayList<GrepResult>> grep(File file, Pattern pattern, FilenameFilter ff, boolean recursive){
 		HashMap<File,ArrayList<GrepResult>> res = new HashMap<File,ArrayList<GrepResult>>();
 		if(!file.isDirectory()){
-			res.put(file,grepFile(file,pattern));
+			ArrayList<GrepResult> ret = grepFile(file,pattern);
+			if(ret.size() > 0)
+				res.put(file,ret);
 			return res;
 		}
 		for(File f : file.listFiles(ff)){
@@ -22,10 +29,16 @@ public class Grep {
 				if(recursive)
 					res.putAll(grep(f,pattern,ff,recursive));
 			} else {
-				res.put(f,grepFile(f,pattern));
+				ArrayList<GrepResult> ret = grepFile(f,pattern);
+				if(ret.size() > 0)
+					res.put(f,ret);
 			}
 		}
 		return res;
+	}
+	
+	public static HashMap<File,ArrayList<GrepResult>> grep(File file, String pattern, FilenameFilter ff, boolean recursive){
+		return grep(file,Pattern.compile(pattern),ff,recursive);
 	}
 	
 	public static HashMap<File,ArrayList<GrepResult>> grep(File file, String pattern, String[] extensions, boolean recursive){
@@ -33,22 +46,59 @@ public class Grep {
 		return grep(file,pattern,ff,recursive);
 	}
 	
-	public static ArrayList<GrepResult> grepFile(File file, String pattern){
+	public static ArrayList<GrepResult> grepFile(File file, Pattern pattern){
+		ArrayList<GrepResult> res = new ArrayList<GrepResult>();
+		try {
+			Scanner in = new Scanner(file);
+			LinkedList<String> curLines = new LinkedList<String>();
+			int lineNum = 1;
+			while(in.hasNextLine() && curLines.size() < MAX_LINES*2+1){
+				curLines.add(in.nextLine());
+			}
+			for(int i = 0; i < MAX_LINES; i++){ // invariant: the lines less than MAX_LINES
+				GrepResult gr = makeMatch(i,curLines,pattern,lineNum++);
+				if(gr != null)
+					res.add(gr);
+			}
+			while(in.hasNextLine()){ // invariant: the lines between MAX_LINES+1 and END-(MAX_LINES-1)
+				GrepResult gr = makeMatch(MAX_LINES,curLines,pattern,lineNum++);
+				if(gr != null)
+					res.add(gr);
+				curLines.remove();
+				curLines.add(in.nextLine());
+			}
+			for(int i = 0; i <= MAX_LINES && curLines.size() > MAX_LINES; i++){ // invariant: the lines after END-(MAX_LINES-1)
+				GrepResult gr = makeMatch(MAX_LINES,curLines,pattern,lineNum++);
+				if(gr != null)
+					res.add(gr);
+				curLines.remove();
+			}
+		} catch (FileNotFoundException e) {
+			// report somehow that the file was not found
+		}
+		return res;
+	}
+	
+	private static GrepResult makeMatch(int i, LinkedList<String> lines, Pattern pattern, int lineNum){
+		String ln = lines.get(i);
+		Matcher m = pattern.matcher(ln);
+		if(m.matches()){
+			return new GrepResult(lineNum,ln,m,lines.subList(0, i),lines.subList(i+1, lines.size()));
+		}
 		return null;
 	}
 	
 	public static class GrepResult {
 		int lineNum;
 		String line;
-		int start, end;
+		Matcher matches;
 		LinkedList<String> before;
 		LinkedList<String> after;
 		
-		public GrepResult(int ln, String lin, int st, int en, List<String> lb, List<String> af){
+		public GrepResult(int ln, String lin, Matcher mat, List<String> lb, List<String> af){
 			lineNum = ln;
 			line = lin;
-			start = st;
-			end = en;
+			matches = mat;
 			before = new LinkedList<String>(lb);
 			after = new LinkedList<String>(af);
 		}
@@ -61,16 +111,8 @@ public class Grep {
 			return line;
 		}
 		
-		public String getMatch(){
-			return line.substring(start,end);
-		}
-		
-		public int getMatchStart(){
-			return start;
-		}
-		
-		public int getMatchEnd(){
-			return end;
+		public Matcher getMatcher(){
+			return matches;
 		}
 		
 		public LinkedList<String> getLinesBefore(int count){

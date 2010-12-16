@@ -3,8 +3,10 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +17,57 @@ import java.util.regex.Pattern;
  * @author Michael Diamond
  */
 public class Grep {
+	public static void main(String[] argus){
+		// Very limited CLI parsing, more powerful: http://jopt-simple.sourceforge.net/
+		HashSet<String> options = new HashSet<String>();
+		ArrayList<String> args = new ArrayList<String>();
+
+		// process options
+		for(int i = 0; i < argus.length; i++){
+			if(argus[i].charAt(0) == '-'){
+				options.add(argus[i].replaceFirst("--?", ""));
+			} else {
+				args.add(argus[i]);
+			}
+		}
+		
+		if(args.size() < 2){
+			System.out.println("Usage: Grep [-r|--recurse] PATTERN PATH [extensions]");
+			return;
+		}
+		
+		if(args.size() == 2){
+			args.add("*");
+		}
+
+		System.out.println(toText(
+				grep(new File(args.get(1)),args.get(0),args.get(2).split(","),options.contains("r") || options.contains("recurse"))));
+	}
+	
 	private static final int MAX_LINES = 10;
+	
+	public static String toText(HashMap<File,ArrayList<GrepResult>> res){
+		return toText(res,3);
+	}
+	
+	public static String toText(HashMap<File,ArrayList<GrepResult>> res, int context){
+		String out = "";
+		for(Entry<File,ArrayList<GrepResult>> e : res.entrySet()){
+			out += e.getKey().getName()+"\n";
+			for(GrepResult gr : e.getValue()){
+				out += " Match on Line "+gr.getLineNumber()+":\n";
+				List<String> bef = gr.getLinesBefore(context);
+				for(String ln : bef)
+					out += "   "+ln+"\n";
+				out += " * "+gr.getLine()+"\n";
+				List<String> aft = gr.getLinesBefore(context);
+				for(String ln : aft)
+					out += "   "+ln+"\n";
+			}
+		}
+		return out;
+	}
+	
 	public static HashMap<File,ArrayList<GrepResult>> grep(File file, Pattern pattern, FilenameFilter ff, boolean recursive){
 		HashMap<File,ArrayList<GrepResult>> res = new HashMap<File,ArrayList<GrepResult>>();
 		if(!file.isDirectory()){
@@ -82,7 +134,7 @@ public class Grep {
 	private static GrepResult makeMatch(int i, LinkedList<String> lines, Pattern pattern, int lineNum){
 		String ln = lines.get(i);
 		Matcher m = pattern.matcher(ln);
-		if(m.matches()){
+		if(m.find()){
 			return new GrepResult(lineNum,ln,m,lines.subList(0, i),lines.subList(i+1, lines.size()));
 		}
 		return null;
@@ -115,20 +167,20 @@ public class Grep {
 			return matches;
 		}
 		
-		public LinkedList<String> getLinesBefore(int count){
-			if(count < 1)
-				throw new GrepException("Invalid cound, must be positive.");
+		public List<String> getLinesBefore(int count){
+			if(count < 0)
+				throw new GrepException("Invalid cound, must be non-negative.");
 			if(count >= before.size())
 				return new LinkedList<String>(before);
-			return (LinkedList<String>)before.subList(before.size()-count, before.size());
+			return before.subList(before.size()-count, before.size());
 		}
 		
-		public LinkedList<String> getLinesAfter(int count){
-			if(count < 1)
-				throw new GrepException("Invalid cound, must be positive.");
+		public List<String> getLinesAfter(int count){
+			if(count < 0)
+				throw new GrepException("Invalid cound, must be non-negative.");
 			if(count >= after.size())
 				return new LinkedList<String>(after);
-			return (LinkedList<String>)after.subList(0, count);
+			return after.subList(0, count);
 		}
 		
 		public String toString(){

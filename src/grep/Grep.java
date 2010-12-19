@@ -1,8 +1,8 @@
 package grep;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,7 +77,7 @@ public class Grep {
 		return out;
 	}
 	
-	public static HashMap<File,ArrayList<GrepResult>> grep(File file, Pattern pattern, FilenameFilter ff, boolean recursive){
+	public static HashMap<File,ArrayList<GrepResult>> grep(File file, Pattern pattern, FileFilter ff, boolean recursive){
 		HashMap<File,ArrayList<GrepResult>> res = new HashMap<File,ArrayList<GrepResult>>();
 		if(!file.isDirectory()){
 			ArrayList<GrepResult> ret = grepFile(file,pattern);
@@ -85,7 +85,10 @@ public class Grep {
 				res.put(file,ret);
 			return res;
 		}
-		for(File f : file.listFiles(ff)){
+		File[] list = file.listFiles(ff);
+		if(list == null) // just in case there's an IO error
+			return res;
+		for(File f : list){
 			if(f.isDirectory()){
 				if(recursive)
 					res.putAll(grep(f,pattern,ff,recursive));
@@ -98,12 +101,12 @@ public class Grep {
 		return res;
 	}
 	
-	public static HashMap<File,ArrayList<GrepResult>> grep(File file, String pattern, FilenameFilter ff, boolean recursive){
+	public static HashMap<File,ArrayList<GrepResult>> grep(File file, String pattern, FileFilter ff, boolean recursive){
 		return grep(file,Pattern.compile(pattern),ff,recursive);
 	}
 	
 	public static HashMap<File,ArrayList<GrepResult>> grep(File file, Pattern pattern, String[] extensions, boolean recursive){
-		FilenameFilter ff = new ExtensionFilter(extensions);
+		FileFilter ff = new ExtensionFilter(extensions);
 		return grep(file,pattern,ff,recursive);
 	}
 	
@@ -209,7 +212,7 @@ public class Grep {
 		}
 	}
 	
-	private static class ExtensionFilter implements FilenameFilter {
+	private static class ExtensionFilter implements FileFilter {
 		String[] exts;
 		boolean all = false;
 		public ExtensionFilter(String[] exs){
@@ -223,11 +226,11 @@ public class Grep {
 			}
 		}
 		@Override
-		public boolean accept(File dir, String name) {
-			if(all)
+		public boolean accept(File file) {
+			if(all || file.isDirectory())
 				return true;
 			for(String e : exts){
-				if(name.endsWith(e))
+				if(file.getAbsolutePath().endsWith(e))
 					return true;
 			}
 			return false;

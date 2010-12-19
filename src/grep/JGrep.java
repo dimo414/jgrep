@@ -3,6 +3,7 @@ package grep;
 import grep.Grep.GrepResult;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,9 +21,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 // TODO save state to config file
@@ -52,6 +55,7 @@ public class JGrep extends JFrame implements ActionListener {
 	private JTextArea resultArea;
 	private JCheckBox caseBox;
 	private JCheckBox regexBox;
+	private JProgressBar progressBar;
 
 	public JGrep(){
 		// looking in two different places to workaround known Java bug with Vista and 7
@@ -65,13 +69,15 @@ public class JGrep extends JFrame implements ActionListener {
 	}
 	
 	private void grep(){
+		progressBar.setVisible(true);
+		
 		// construct data
 		grepPath = new File(fileField.getText());
 		String patternStr = patternField.getText();
-		Pattern pattern;
+		final Pattern pattern;
 		String extsStr = extensionsField.getText().replaceAll("\\s+", "").replace("\\.", "");
-		String[] exts = extsStr.split(",");
-		boolean recurse = recurseBox.isSelected();
+		final String[] exts = extsStr.split(",");
+		final boolean recurse = recurseBox.isSelected();
 		boolean caseInsense = caseBox.isSelected();
 		boolean regex = regexBox.isSelected();
 		
@@ -96,29 +102,38 @@ public class JGrep extends JFrame implements ActionListener {
 			return;
 		}
 		
-		// TODO put in its own thread
 		// grep
-		result = Grep.grep(grepPath, pattern, exts, recurse);
-		updateResults();
+		// TODO is there some way to be able to stop this after it starts?
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				result = Grep.grep(grepPath, pattern, exts, recurse);
+				SwingUtilities.invokeLater(updateResults);
+			}
+		}).start();
 	}
 	
-	private void updateResults(){
-		if(result == null)
-			return;
-		
-		fileArea.setText("");
-		resultArea.setText("");
-		String rootPath = grepPath.getAbsolutePath();
-		int matchCount = 0;
-		for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
-			fileArea.append(e.getKey().getAbsolutePath().substring(rootPath.length())+"\n");
-			matchCount += e.getValue().size();
-			for(GrepResult g : e.getValue()){
-				resultArea.append(g.toString()+"\n");
+	private Runnable updateResults = new Runnable(){
+		@Override
+		public void run() {
+			if(result == null)
+				return;
+			
+			fileArea.setText("");
+			resultArea.setText("");
+			String rootPath = grepPath.getAbsolutePath();
+			int matchCount = 0;
+			for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
+				fileArea.append(e.getKey().getAbsolutePath().substring(rootPath.length())+"\n");
+				matchCount += e.getValue().size();
+				for(GrepResult g : e.getValue()){
+					resultArea.append(g.toString()+"\n");
+				}
 			}
+			resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
+			progressBar.setVisible(false);
 		}
-		resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
-	}
+	};
 
 	private void initComponents() {
 		fileChooser = new JFileChooser(grepPath);
@@ -177,6 +192,12 @@ public class JGrep extends JFrame implements ActionListener {
 		// south panel
 		resultsText = new JLabel(" ");
 		sPanelL.add(resultsText);
+		
+		progressBar = new JProgressBar();
+		progressBar.setIndeterminate(true);
+		progressBar.setPreferredSize(new Dimension(60,18));
+		progressBar.setVisible(false);
+		sPanelR.add(progressBar);
 		
 		sPanelR.add(new JLabel("Recurse Directories:"));
 		

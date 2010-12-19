@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -47,7 +48,7 @@ public class Grep {
 		}
 
 		System.out.println(toText(
-				grep(new File(args.get(1)),args.get(0),args.get(2).split(","),options.contains("r") || options.contains("recurse"))));
+				grep(new File(args.get(1)),Pattern.compile(args.get(0)),args.get(2).split(","),options.contains("r") || options.contains("recurse"))));
 	}
 	
 	private static final int MAX_LINES = 10;
@@ -100,7 +101,7 @@ public class Grep {
 		return grep(file,Pattern.compile(pattern),ff,recursive);
 	}
 	
-	public static HashMap<File,ArrayList<GrepResult>> grep(File file, String pattern, String[] extensions, boolean recursive){
+	public static HashMap<File,ArrayList<GrepResult>> grep(File file, Pattern pattern, String[] extensions, boolean recursive){
 		FilenameFilter ff = new ExtensionFilter(extensions);
 		return grep(file,pattern,ff,recursive);
 	}

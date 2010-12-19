@@ -1,10 +1,15 @@
 package grep;
 
+import grep.Grep.GrepResult;
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -33,6 +38,7 @@ public class JGrep extends JFrame implements ActionListener {
 	}
 	
 	private File grepPath;
+	private HashMap<File,ArrayList<GrepResult>> result = null;
 	
 	private JFileChooser fileChooser;
 	private JTextField fileField;
@@ -60,19 +66,18 @@ public class JGrep extends JFrame implements ActionListener {
 	
 	private void grep(){
 		// construct data
-		File search = new File(fileField.getText());
+		grepPath = new File(fileField.getText());
 		String patternStr = patternField.getText();
 		Pattern pattern;
 		String extsStr = extensionsField.getText().replaceAll("\\s+", "").replace("\\.", "");
-		System.out.println(extsStr);
 		String[] exts = extsStr.split(",");
 		boolean recurse = recurseBox.isSelected();
-		boolean caseSense = caseBox.isSelected();
+		boolean caseInsense = caseBox.isSelected();
 		boolean regex = regexBox.isSelected();
 		
 		// error checking
-		if(!search.exists()){
-			warning("The path "+search.getAbsolutePath()+" does not exist.","Invalid Path");
+		if(!grepPath.exists()){
+			warning("The path "+grepPath.getAbsolutePath()+" does not exist.","Invalid Path");
 			return;
 		}
 		if(patternStr.equals("")){
@@ -80,7 +85,7 @@ public class JGrep extends JFrame implements ActionListener {
 			return;
 		}
 		int patternFlags = Pattern.MULTILINE;
-		if(!caseSense)
+		if(caseInsense)
 			patternFlags |= Pattern.CASE_INSENSITIVE;
 		if(!regex)
 			patternFlags |= Pattern.LITERAL;
@@ -90,6 +95,29 @@ public class JGrep extends JFrame implements ActionListener {
 			warning(e.getDescription(), "Invalid Pattern");
 			return;
 		}
+		
+		// TODO put in its own thread
+		// grep
+		result = Grep.grep(grepPath, pattern, exts, recurse);
+		updateResults();
+	}
+	
+	private void updateResults(){
+		if(result == null)
+			return;
+		
+		fileArea.setText("");
+		resultArea.setText("");
+		String rootPath = grepPath.getAbsolutePath();
+		int matchCount = 0;
+		for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
+			fileArea.append(e.getKey().getAbsolutePath().substring(rootPath.length())+"\n");
+			matchCount += e.getValue().size();
+			for(GrepResult g : e.getValue()){
+				resultArea.append(g.toString()+"\n");
+			}
+		}
+		resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
 	}
 
 	private void initComponents() {
@@ -125,6 +153,7 @@ public class JGrep extends JFrame implements ActionListener {
 		nPanel.add(new JLabel("Pattern:"));
 		
 		patternField = new JTextField(8);
+		patternField.addActionListener(this);
 		nPanel.add(patternField);
 		
 		nPanel.add(new JLabel("Extensions:"));
@@ -154,7 +183,7 @@ public class JGrep extends JFrame implements ActionListener {
 		recurseBox = new JCheckBox();
 		sPanelR.add(recurseBox);
 		
-		sPanelR.add(new JLabel("Case Sensitive:"));
+		sPanelR.add(new JLabel("Case Insensitive:"));
 		
 		caseBox = new JCheckBox();
 		sPanelR.add(caseBox);
@@ -195,7 +224,7 @@ public class JGrep extends JFrame implements ActionListener {
 	            			"File Not Found");
 	            }
 	        }
-		} else if(src == searchButton){
+		} else if(src == searchButton || src == patternField){
 			grep();
 		}
 	}

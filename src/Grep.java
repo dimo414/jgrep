@@ -16,6 +16,12 @@ import java.util.regex.Pattern;
  * 
  * @author Michael Diamond
  */
+// TODO test utility:
+// Empty file
+// file less than MAX_LINES
+// match before MAX_LINES
+// match in last MAX_LINES
+// Recusive grep
 public class Grep {
 	public static void main(String[] argus){
 		// Very limited CLI parsing, more powerful: http://jopt-simple.sourceforge.net/
@@ -47,10 +53,11 @@ public class Grep {
 	private static final int MAX_LINES = 10;
 	
 	public static String toText(HashMap<File,ArrayList<GrepResult>> res){
-		return toText(res,3);
+		return toText(res,0);
 	}
 	
 	public static String toText(HashMap<File,ArrayList<GrepResult>> res, int context){
+		// TODO should output relative to search location
 		String out = "";
 		for(Entry<File,ArrayList<GrepResult>> e : res.entrySet()){
 			out += e.getKey().getName()+"\n";
@@ -107,7 +114,7 @@ public class Grep {
 			while(in.hasNextLine() && curLines.size() < MAX_LINES*2+1){
 				curLines.add(in.nextLine());
 			}
-			for(int i = 0; i < MAX_LINES; i++){ // invariant: the lines less than MAX_LINES
+			for(int i = 0; i < MAX_LINES && i < curLines.size(); i++){ // invariant: the lines less than MAX_LINES
 				GrepResult gr = makeMatch(i,curLines,pattern,lineNum++);
 				if(gr != null)
 					res.add(gr);

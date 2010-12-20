@@ -1,6 +1,7 @@
 package grep;
 
 import grep.Grep.GrepResult;
+import grep.Grep.GrepStopException;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -63,6 +64,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JTextField patternField;
 	private JTextField extensionsField;
 	private JButton searchButton;
+	private JButton stopButton;
 	private JList fileList;
 	private FileListModel fileListModel;
 	private JEditorPane resultPane;
@@ -85,6 +87,8 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	}
 	
 	private void grep(){
+		searchButton.setVisible(false);
+		stopButton.setVisible(true);
 		progressBar.setVisible(true);
 		
 		// construct data
@@ -119,11 +123,15 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 		
 		// grep
-		// TODO is there some way to be able to stop this after it starts?
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				try {
 				result = Grep.grep(grepPath, pattern, exts, recurse);
+				} catch (GrepStopException e){
+					Grep.setGrepLock(false);
+					result = null;
+				}
 				SwingUtilities.invokeLater(updateResults);
 			}
 		}).start();
@@ -132,18 +140,18 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private Runnable updateResults = new Runnable(){
 		@Override
 		public void run() {
-			if(result == null)
-				return;
-			
-			resultPane.setText("");
-			int matchCount = 0;
-			String absPat = grepPath.getAbsolutePath();
-			fileListModel.setFiles(result.keySet(),absPat);
-			for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
-				matchCount += e.getValue().size();
+			if(result != null){
+				resultPane.setText("");
+				int matchCount = 0;
+				String absPat = grepPath.getAbsolutePath();
+				fileListModel.setFiles(result.keySet(),absPat);
+				for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
+					matchCount += e.getValue().size();
+				}
+				fileList.setSelectedIndex(0);resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
 			}
-			fileList.setSelectedIndex(0);
-			resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
+			searchButton.setVisible(true);
+			stopButton.setVisible(false);
 			progressBar.setVisible(false);
 		}
 	};
@@ -227,6 +235,11 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		searchButton = new JButton("Grep");
 		searchButton.addActionListener(this);
 		nPanel.add(searchButton);
+		
+		stopButton = new JButton("Stop");
+		stopButton.addActionListener(this);
+		stopButton.setVisible(false);
+		nPanel.add(stopButton);
 		
 		// content
 		fileListModel = new FileListModel();
@@ -313,6 +326,8 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	        }
 		} else if(src == searchButton || src == patternField){
 			grep();
+		} else if(src == stopButton){
+			Grep.setGrepLock(true);
 		}
 	}
 

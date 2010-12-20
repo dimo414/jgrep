@@ -56,6 +56,7 @@ public class Grep {
 	}
 	
 	public static final int MAX_LINES = 10;
+	private static volatile boolean stop = false;
 	
 	public static String toText(HashMap<File,ArrayList<GrepResult>> res){
 		return toText(res,0);
@@ -147,12 +148,29 @@ public class Grep {
 	}
 	
 	private static GrepResult makeMatch(int i, LinkedList<String> lines, Pattern pattern, int lineNum){
+		if(stop){
+			throw new GrepStopException("Grep is stopped.  Grep must be manually restarted to use.");
+		}
 		String ln = lines.get(i);
 		Matcher m = pattern.matcher(ln);
 		if(m.find()){
 			return new GrepResult(lineNum,ln,m,lines.subList(0, i),lines.subList(i+1, lines.size()));
 		}
 		return null;
+	}
+	
+	/**
+	 * Used to interrupt a Grep search.  Since Grep makes no promises of being
+	 * thread safe, it should not be running more than one search at a time, but
+	 * this method will stop all searches.  If a Grep search is running while this
+	 * method is set, a GrepStopException - which extends RuntimeException - will be
+	 * thrown, and should be handled inside the thread running the search.  Note that
+	 * once Grep is locked, it must be manually unlocked once it is safe to do so.
+	 * @param lock true to stop all searches, false to allow them again
+	 */
+	// I'm not very happy with this interrupt functionality at all, but it seems best atm
+	public static synchronized void setGrepLock(boolean lock){
+		stop = lock;
 	}
 	
 	public static class GrepResult {
@@ -184,7 +202,7 @@ public class Grep {
 		
 		public List<String> getLinesBefore(int count){
 			if(count < 0)
-				throw new GrepException("Invalid cound, must be non-negative.");
+				throw new GrepException("Invalid count, must be non-negative.");
 			if(count >= before.size())
 				return new LinkedList<String>(before);
 			return before.subList(before.size()-count, before.size());
@@ -192,7 +210,7 @@ public class Grep {
 		
 		public List<String> getLinesAfter(int count){
 			if(count < 0)
-				throw new GrepException("Invalid cound, must be non-negative.");
+				throw new GrepException("Invalid count, must be non-negative.");
 			if(count >= after.size())
 				return new LinkedList<String>(after);
 			return after.subList(0, count);
@@ -212,6 +230,14 @@ public class Grep {
 		
 		public GrepException(String err, Throwable thr){
 			super(err,thr);
+		}
+	}
+	
+	public static class GrepStopException extends GrepException {
+		private static final long serialVersionUID = 81746759263988424L;
+		
+		public GrepStopException(String err){
+			super(err);
 		}
 	}
 	

@@ -52,7 +52,7 @@ public class Grep {
 				grep(new File(args.get(1)),Pattern.compile(args.get(0)),args.get(2).split(","),options.contains("r") || options.contains("recurse"))));
 	}
 	
-	private static final int MAX_LINES = 10;
+	public static final int MAX_LINES = 10;
 	
 	public static String toText(HashMap<File,ArrayList<GrepResult>> res){
 		return toText(res,0);

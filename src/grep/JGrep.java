@@ -30,15 +30,19 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 // TODO save state to config file
-public class JGrep extends JFrame implements ActionListener, ListSelectionListener {
+public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{
 		try {
@@ -66,6 +70,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JCheckBox caseBox;
 	private JCheckBox regexBox;
 	private JProgressBar progressBar;
+	private JSpinner contextSpinner;
 
 	public JGrep(){
 		// looking in two different places to workaround known Java bug with Vista and 7
@@ -235,15 +240,25 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		JScrollPane resultScroll = new JScrollPane(resultPane);
 		content.add(resultScroll,BorderLayout.CENTER);
 		
-		// south panel
+		// south panel left
 		resultsText = new JLabel(" ");
 		sPanelL.add(resultsText);
 		
+		// south panel right
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setPreferredSize(new Dimension(60,18));
 		progressBar.setVisible(false);
 		sPanelR.add(progressBar);
+		
+		sPanelR.add(new JLabel("Context Lines:"));
+		
+		contextSpinner = new JSpinner(new SpinnerNumberModel(0,0,Grep.MAX_LINES,1));
+		((JSpinner.DefaultEditor)contextSpinner.getEditor()).getTextField().setEditable(false);
+		contextSpinner.addChangeListener(this);
+		sPanelR.add(contextSpinner);
+		
+		sPanelR.add(new TSeparator(SwingConstants.VERTICAL));
 		
 		sPanelR.add(new JLabel("Recurse Directories:"));
 		
@@ -302,14 +317,31 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 
 	@Override
 	public void valueChanged(ListSelectionEvent evt) {
-		if (evt.getValueIsAdjusting() == false) {
-	        if (fileList.getSelectedIndex() == -1) {
-		        // nothing selected, nothing to change
-	        } else {
-	        	File f = fileListModel.getFileAt(fileList.getSelectedIndex());
-	        	resultPane.setText(grepToHTML(f,0));
-	        }
-	    }
+		Object src = evt.getSource();
+		if(src == fileList){
+			if (evt.getValueIsAdjusting() == false) {
+		        if (fileList.getSelectedIndex() == -1) {
+			        // nothing selected, nothing to change
+		        } else {
+		        	buildResultPane();
+		        }
+		    }
+		}
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent evt) {
+		Object src = evt.getSource();
+		if(src == contextSpinner){
+			buildResultPane();
+		}
+	}
+	
+	private void buildResultPane(){
+    	File f = fileListModel.getFileAt(fileList.getSelectedIndex());
+    	resultPane.setText(grepToHTML(f,(Integer)contextSpinner.getValue()));
+    	resultPane.setSelectionStart(0);
+    	resultPane.setSelectionEnd(0);
 	}
 	
 	private void warning(String title, String message){
@@ -346,9 +378,11 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	}
 	
 	private static class TSeparator extends JSeparator {
+		private static final long serialVersionUID = -8339080768468333094L;
+
 		TSeparator(int orient){
 			super(orient);
-			setPreferredSize(new Dimension(3,20));
+			setPreferredSize(new Dimension(2,20));
 		}
 	}
 	

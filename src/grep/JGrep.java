@@ -29,7 +29,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
@@ -198,16 +200,23 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		browseButton.addActionListener(this);
 		nPanel.add(browseButton);
 		
+		nPanel.add(new TSeparator(SwingConstants.VERTICAL));
+		
+		// TODO some easy way to show basic regex operators
 		nPanel.add(new JLabel("Pattern:"));
 		
 		patternField = new JTextField(8);
 		patternField.addActionListener(this);
 		nPanel.add(patternField);
 		
+		nPanel.add(new TSeparator(SwingConstants.VERTICAL));
+		
 		nPanel.add(new JLabel("Extensions:"));
 		
 		extensionsField = new JTextField("*",5);
 		nPanel.add(extensionsField);
+		
+		nPanel.add(new TSeparator(SwingConstants.VERTICAL));
 		
 		searchButton = new JButton("Grep");
 		searchButton.addActionListener(this);
@@ -241,10 +250,14 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		recurseBox = new JCheckBox();
 		sPanelR.add(recurseBox);
 		
+		sPanelR.add(new TSeparator(SwingConstants.VERTICAL));
+		
 		sPanelR.add(new JLabel("Case Insensitive:"));
 		
 		caseBox = new JCheckBox();
 		sPanelR.add(caseBox);
+		
+		sPanelR.add(new TSeparator(SwingConstants.VERTICAL));
 		
 		sPanelR.add(new JLabel("Use RegEx:"));
 		
@@ -253,7 +266,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		
 		// final setup
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setSize(700,600);
+		setSize(750,600);
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
@@ -330,6 +343,13 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 			return files.size();
 		}
 		
+	}
+	
+	private static class TSeparator extends JSeparator {
+		TSeparator(int orient){
+			super(orient);
+			setPreferredSize(new Dimension(3,20));
+		}
 	}
 	
 	public static void main(String[] args){

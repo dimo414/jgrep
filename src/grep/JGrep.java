@@ -9,16 +9,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.AbstractListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -49,10 +53,11 @@ public class JGrep extends JFrame implements ActionListener {
 	private JTextField patternField;
 	private JTextField extensionsField;
 	private JButton searchButton;
-	private JCheckBox recurseBox;
-	private JLabel resultsText;
-	private JTextArea fileArea;
+	private JList fileList;
+	private FileListModel fileListModel;
 	private JTextArea resultArea;
+	private JLabel resultsText;
+	private JCheckBox recurseBox;
 	private JCheckBox caseBox;
 	private JCheckBox regexBox;
 	private JProgressBar progressBar;
@@ -119,12 +124,10 @@ public class JGrep extends JFrame implements ActionListener {
 			if(result == null)
 				return;
 			
-			fileArea.setText("");
 			resultArea.setText("");
-			String rootPath = grepPath.getAbsolutePath();
 			int matchCount = 0;
+			fileListModel.setFiles(result.keySet(),grepPath.getAbsolutePath());
 			for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
-				fileArea.append(e.getKey().getAbsolutePath().substring(rootPath.length())+"\n");
 				matchCount += e.getValue().size();
 				for(GrepResult g : e.getValue()){
 					resultArea.append(g.toString()+"\n");
@@ -181,10 +184,13 @@ public class JGrep extends JFrame implements ActionListener {
 		nPanel.add(searchButton);
 		
 		// content
-		fileArea = new JTextArea(5,20);
-		JScrollPane fileScroll = new JScrollPane(fileArea);
+		fileListModel = new FileListModel();
+		fileList = new JList(fileListModel);
+		fileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		JScrollPane fileScroll = new JScrollPane(fileList);
+		fileScroll.setPreferredSize(new Dimension(200,100));
 		content.add(fileScroll,BorderLayout.WEST);
-
+		
 		resultArea = new JTextArea(5,30);
 		JScrollPane resultScroll = new JScrollPane(resultArea);
 		content.add(resultScroll,BorderLayout.CENTER);
@@ -252,6 +258,31 @@ public class JGrep extends JFrame implements ActionListener {
 	
 	private void warning(String title, String message){
 		JOptionPane.showMessageDialog(this, message, title,JOptionPane.WARNING_MESSAGE);
+	}
+	
+	private class FileListModel extends AbstractListModel {
+		private static final long serialVersionUID = -7045093302929107928L;
+		private ArrayList<File> files = new ArrayList<File>();
+		private String rootPath = "";
+
+		public void setFiles(Set<File> f, String rp) {
+			fireIntervalRemoved(this, 0, files.size());
+			files = new ArrayList<File>(f);
+			rootPath = rp;
+			Collections.sort(files);
+			fireIntervalAdded(this, 0, files.size());
+		}
+
+		@Override
+		public Object getElementAt(int row) {
+			return files.get(row).getAbsolutePath().substring(rootPath.length());
+		}
+
+		@Override
+		public int getSize() {
+			return files.size();
+		}
+		
 	}
 	
 	public static void main(String[] args){

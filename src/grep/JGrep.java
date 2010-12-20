@@ -29,13 +29,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 // TODO save state to config file
-public class JGrep extends JFrame implements ActionListener {
+public class JGrep extends JFrame implements ActionListener, ListSelectionListener {
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{
 		try {
@@ -132,27 +133,28 @@ public class JGrep extends JFrame implements ActionListener {
 			fileListModel.setFiles(result.keySet(),absPat);
 			for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
 				matchCount += e.getValue().size();
-				for(GrepResult g : e.getValue()){
-					resultPane.setText(grepToHTML(e,0));
-				}
 			}
+			fileList.setSelectedIndex(0);
 			resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
 			progressBar.setVisible(false);
 		}
 	};
 
-	protected String grepToHTML(Entry<File, ArrayList<GrepResult>> e, int context) {
+	protected String grepToHTML(File file, int context) {
+		ArrayList<GrepResult> r = result.get(file);
 		StringBuilder out = new StringBuilder();
 		out.append(
 				"<html><head><style>" +
 				".title { font-size: 1.2em; }" +
-				".match { padding-bottom: 5px; }" +
+				".match { padding-top: 5px; }" +
+				".text { font-family: monospace; }" +
 				"</style>" +
 				"</head><body>"
 				);
-		out.append(String.format("<div class=\"title\">%s</div>",e.getKey()));
-		for(GrepResult g : e.getValue()){
-			out.append(String.format("<div class=\"match\"><em>Match on line %d:</em><br />",g.getLineNumber()));
+		out.append("<div class=\"title\">"+file.getAbsolutePath()+"</div>");
+		out.append("<div class=\"subtitle\">"+r.size()+" matches in file.</div>");
+		for(GrepResult g : r){
+			out.append(String.format("<div class=\"match\"><em>Match on line %d:</em><br /><div class=\"text\">",g.getLineNumber()));
 			List<String> cont = g.getLinesBefore(context);
 			for(String ln : cont)
 				out.append(ln+"%s<br />");
@@ -160,7 +162,7 @@ public class JGrep extends JFrame implements ActionListener {
 			cont = g.getLinesAfter(context);
 			for(String ln : cont)
 				out.append("<br />"+ln);
-			out.append("</div>");
+			out.append("</div></div>");
 		}
 		out.append("</body></html>");
 		return out.toString();
@@ -215,6 +217,7 @@ public class JGrep extends JFrame implements ActionListener {
 		fileListModel = new FileListModel();
 		fileList = new JList(fileListModel);
 		fileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		fileList.addListSelectionListener(this);
 		JScrollPane fileScroll = new JScrollPane(fileList);
 		fileScroll.setPreferredSize(new Dimension(200,100));
 		content.add(fileScroll,BorderLayout.WEST);
@@ -283,6 +286,18 @@ public class JGrep extends JFrame implements ActionListener {
 			grep();
 		}
 	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent evt) {
+		if (evt.getValueIsAdjusting() == false) {
+	        if (fileList.getSelectedIndex() == -1) {
+		        // nothing selected, nothing to change
+	        } else {
+	        	File f = fileListModel.getFileAt(fileList.getSelectedIndex());
+	        	resultPane.setText(grepToHTML(f,0));
+	        }
+	    }
+	}
 	
 	private void warning(String title, String message){
 		JOptionPane.showMessageDialog(this, message, title,JOptionPane.WARNING_MESSAGE);
@@ -304,6 +319,10 @@ public class JGrep extends JFrame implements ActionListener {
 		@Override
 		public Object getElementAt(int row) {
 			return files.get(row).getAbsolutePath().substring(rootPath.length());
+		}
+		
+		public File getFileAt(int row){
+			return files.get(row);
 		}
 
 		@Override

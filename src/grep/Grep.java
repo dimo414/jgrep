@@ -24,6 +24,9 @@ import java.util.regex.Pattern;
 // match before MAX_LINES
 // match in last MAX_LINES
 // Recusive grep
+// TODO find/replace functionality
+// TODO grep a set of files
+// TODO additional filters, age, size, etc.
 public class Grep {
 	public static void main(String[] argus){
 		// Very limited CLI parsing, more powerful: http://jopt-simple.sourceforge.net/

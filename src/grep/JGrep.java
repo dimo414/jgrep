@@ -156,14 +156,14 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		out.append("<div class=\"title\">"+file.getAbsolutePath()+"</div>");
 		out.append("<div class=\"subtitle\">"+r.size()+" matches in file.</div>");
 		for(GrepResult g : r){
-			out.append(String.format("<div class=\"match\"><em>Match on line %d:</em><br /><div class=\"text\">",g.getLineNumber()));
+			out.append("<div class=\"match\"><em>Match on line "+g.getLineNumber()+"</em><br /><div class=\"text\">");
 			List<String> cont = g.getLinesBefore(context);
 			for(String ln : cont)
-				out.append(ln+"%s<br />");
-			out.append("<strong>"+g.getLine()+"</strong>");
+				out.append(htmlEscape(ln)+"<br />");
+			out.append("<strong>"+htmlEscape(g.getLine())+"</strong>");
 			cont = g.getLinesAfter(context);
 			for(String ln : cont)
-				out.append("<br />"+ln);
+				out.append("<br />"+htmlEscape(ln));
 			out.append("</div></div>");
 		}
 		out.append("</body></html>");
@@ -350,6 +350,27 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 			super(orient);
 			setPreferredSize(new Dimension(3,20));
 		}
+	}
+	
+	private static HashMap<Character,String> htmlEscapeMap = new HashMap<Character,String>();
+	static {
+		htmlEscapeMap.put('"', "&quot;");
+		htmlEscapeMap.put('&', "&amp;");
+		htmlEscapeMap.put('<', "&lt;");
+		htmlEscapeMap.put('>', "&gt;");
+	}
+	private static String htmlEscape(String in){
+		StringBuilder out = new StringBuilder(in.length()*2);
+		for(int i = 0; i < in.length(); i++){
+			char c = in.charAt(i);
+			String esc = htmlEscapeMap.get(c);
+			if(esc != null){
+				out.append(esc);
+			} else {
+				out.append(c);
+			}
+		}
+		return out.toString();
 	}
 	
 	public static void main(String[] args){

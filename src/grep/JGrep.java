@@ -50,7 +50,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-// TODO able to load and save previous states
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{
@@ -161,25 +160,33 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		final boolean recurse = recurseBox.isSelected();
 		boolean caseInsense = caseBox.isSelected();
 		boolean regex = regexBox.isSelected();
-		
-		// error checking
-		if(!grepPath.exists()){
-			warning("The path "+grepPath.getAbsolutePath()+" does not exist.","Invalid Path");
-			return;
+
+		try {
+			// error checking
+			if(!grepPath.exists()){
+				warning("Invalid Path", "The path "+grepPath.getAbsolutePath()+" does not exist.");
+				throw new Exception();
+			}
+			if(patternStr.equals("")){
+				warning("Invalid Pattern", "Please specify a string to grep for.");
+				throw new Exception();
+			}
+			int patternFlags = Pattern.MULTILINE;
+			if(caseInsense)
+				patternFlags |= Pattern.CASE_INSENSITIVE;
+			if(!regex)
+				patternFlags |= Pattern.LITERAL;
+			try{
+				pattern = Pattern.compile(patternStr,patternFlags);
+			} catch (PatternSyntaxException e){
+				warning("Invalid Pattern", "Pattern has the following error: "+e.getDescription());
+				throw new Exception();
 		}
-		if(patternStr.equals("")){
-			warning("Please specify a string to grep for.","Invalid Pattern");
-			return;
-		}
-		int patternFlags = Pattern.MULTILINE;
-		if(caseInsense)
-			patternFlags |= Pattern.CASE_INSENSITIVE;
-		if(!regex)
-			patternFlags |= Pattern.LITERAL;
-		try{
-			pattern = Pattern.compile(patternStr,patternFlags);
-		} catch (PatternSyntaxException e){
-			warning(e.getDescription(), "Invalid Pattern");
+		} catch (Exception e){
+			// restore to no-search state
+			searchButton.setVisible(true);
+			stopButton.setVisible(false);
+			progressBar.setVisible(false);
 			return;
 		}
 		
@@ -442,8 +449,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 					f = f.getParentFile();
 				fileChooser.setCurrentDirectory(f);
 			} else {
-            	warning("The selected file: "+f.getAbsolutePath()+" does not exist.",
-            			"File Not Found");
+            	warning("File Not Found","The selected file: "+f.getAbsolutePath()+" does not exist.");
             }
 		} else if(src == browseButton){
 			int returnVal = fileChooser.showOpenDialog(this);
@@ -452,8 +458,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	            if(f.exists())
 	            	fileField.setText(f.getAbsolutePath());
 	            else {
-	            	warning("The selected file: "+f.getAbsolutePath()+" does not exist.",
-	            			"File Not Found");
+	            	warning("File Not Found","The selected file: "+f.getAbsolutePath()+" does not exist.");
 	            }
 	        }
 		}

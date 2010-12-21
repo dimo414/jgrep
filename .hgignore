@@ -2,3 +2,4 @@ glob:.classpath
 glob:.project
 glob:.settings/*
 glob:bin/*
+glob:.jGrep.conf

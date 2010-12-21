@@ -31,6 +31,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -48,7 +51,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 // TODO able to load and save previous states
-// TODO find/replace
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{
@@ -64,8 +66,13 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private File grepPath;
 	private Properties props;
 	private HashMap<File,ArrayList<GrepResult>> result = null;
-	
+
+	private JMenuItem openMItem;
+	private JMenuItem saveMItem;
+	private JMenuItem replaceMItem;
+	private JMenuItem helpMItem;
 	private JFileChooser fileChooser;
+	private JFileChooser saveChooser;
 	private JTextField fileField;
 	private JButton browseButton;
 	private JTextField patternField;
@@ -256,8 +263,37 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
  			}
  		});
 		
+ 		// file choosers
 		fileChooser = new JFileChooser(grepPath);
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		saveChooser = new JFileChooser(grepPath);
+		
+		// menu bar
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu optMenu = new JMenu("Options");
+		menuBar.add(optMenu);
+		
+		openMItem = new JMenuItem("Open Search State");
+		openMItem.addActionListener(this);
+		optMenu.add(openMItem);
+		
+		saveMItem = new JMenuItem("Save Search State");
+		saveMItem.addActionListener(this);
+		optMenu.add(saveMItem);
+		
+		optMenu.add(new JSeparator());
+		
+		replaceMItem = new JMenuItem("Replace Matches");
+		replaceMItem.addActionListener(this);
+		optMenu.add(replaceMItem);
+		
+		optMenu.add(new JSeparator());
+		
+		helpMItem = new JMenuItem("Pattern Help");
+		helpMItem.addActionListener(this);
+		optMenu.add(helpMItem);
 		
 		// create all panels
 		JPanel body = new JPanel(new BorderLayout());
@@ -371,11 +407,35 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
+	
+	//
+	// LISTENERS
+	//
 
 	@Override
 	public void actionPerformed(ActionEvent evt) {
 		Object src = evt.getSource();
-		if(src == fileField){
+		// menu events
+		if(src == openMItem){
+			int returnVal = saveChooser.showOpenDialog(this);
+	        if (returnVal == JFileChooser.APPROVE_OPTION) {
+	            File file = saveChooser.getSelectedFile();
+	            loadProperties(file);
+	        }
+		} else if(src == saveMItem){
+			int returnVal = saveChooser.showSaveDialog(this);
+	        if (returnVal == JFileChooser.APPROVE_OPTION) {
+	            File file = saveChooser.getSelectedFile();
+	            saveProperties(file,"User-Saved Grep State");
+	        }
+		} else if(src == replaceMItem){
+			// TODO replace functionality
+		} else if(src == helpMItem){
+			// TODO show info on regex usage
+		} 
+		
+		// file selection
+		else if(src == fileField){
 			File f = new File(fileField.getText());
 			if(f.exists()){
 				if(!f.isDirectory())
@@ -396,7 +456,10 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	            			"File Not Found");
 	            }
 	        }
-		} else if(src == searchButton || src == patternField){
+		}
+		
+		// search/stop
+		else if(src == searchButton || src == patternField){
 			grep();
 		} else if(src == stopButton){
 			Grep.setGrepLock(true);
@@ -424,6 +487,10 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 			buildResultPane();
 		}
 	}
+	
+	//
+	// PRIVATE UTILITIES
+	//
 	
 	private void buildResultPane(){
     	File f = fileListModel.getFileAt(fileList.getSelectedIndex());

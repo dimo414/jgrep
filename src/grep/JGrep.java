@@ -8,12 +8,16 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -42,7 +46,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-// TODO save state to config file
 // TODO able to load and save previous states
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
 	private static final long serialVersionUID = 9035033306521981994L;
@@ -55,7 +58,9 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 	}
 	
+	private File stateFile = new File("jGrep.conf");
 	private File grepPath;
+	private Properties props;
 	private HashMap<File,ArrayList<GrepResult>> result = null;
 	
 	private JFileChooser fileChooser;
@@ -84,8 +89,55 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		grepPath = new File(path);
 		
 		initComponents();
+		loadProperties(stateFile);
 	}
 	
+	private boolean loadProperties(File f) {
+		try {
+			props = new Properties();
+			FileInputStream in = new FileInputStream(f);
+			props.load(in);
+			in.close();
+			fileField.setText(props.getProperty("path"));
+			patternField.setText(props.getProperty("pattern"));
+			extensionsField.setText(props.getProperty("extensions"));
+			contextSpinner.setValue(Integer.parseInt(props.getProperty("context")));
+			recurseBox.setSelected(props.getProperty("recurse").equals("true"));
+			caseBox.setSelected(props.getProperty("case").equals("true"));
+			regexBox.setSelected(props.getProperty("regex").equals("true"));
+			
+			File path = new File(fileField.getText());
+			if(path.exists()){
+				if(!path.isDirectory())
+					path = path.getParentFile();
+				fileChooser.setCurrentDirectory(path);
+			}
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	// data that is saved: path, pattern, extensions, context, recurse, case, regex
+	private boolean saveProperties(File f, String desc){
+		FileOutputStream out;
+		try {
+			props.setProperty("path", fileField.getText());
+			props.setProperty("pattern", patternField.getText());
+			props.setProperty("extensions", extensionsField.getText());
+			props.setProperty("context", contextSpinner.getValue().toString());
+			props.setProperty("recurse", recurseBox.isSelected()+"");
+			props.setProperty("case", caseBox.isSelected()+"");
+			props.setProperty("regex", regexBox.isSelected()+"");
+			out = new FileOutputStream(f);
+			props.store(out, "JGrep Configuration File: "+desc);
+			out.close();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	private void grep(){
 		searchButton.setVisible(false);
 		stopButton.setVisible(true);
@@ -157,6 +209,9 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	};
 
 	protected String grepToHTML(File file, int context) {
+		if(result == null){
+			return "";
+		}
 		ArrayList<GrepResult> r = result.get(file);
 		StringBuilder out = new StringBuilder();
 		out.append(
@@ -185,6 +240,19 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	}
 
 	private void initComponents() {
+		// Window Close Operation
+ 		addWindowListener(new WindowAdapter() {
+ 			@Override
+ 			public void windowClosing(java.awt.event.WindowEvent e) {
+ 				setVisible(false);
+ 				dispose();
+ 				
+ 				saveProperties(stateFile,"State on close");
+ 				
+ 				System.exit(0);
+ 			}
+ 		});
+		
 		fileChooser = new JFileChooser(grepPath);
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		
@@ -383,6 +451,8 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 		
 		public File getFileAt(int row){
+			if(row < 0)
+				return null;
 			return files.get(row);
 		}
 

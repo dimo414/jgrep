@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -47,6 +48,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 // TODO able to load and save previous states
+// TODO find/replace
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{
@@ -58,7 +60,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 	}
 	
-	private File stateFile = new File("jGrep.conf");
+	private File stateFile = new File(".jGrep.conf");
 	private File grepPath;
 	private Properties props;
 	private HashMap<File,ArrayList<GrepResult>> result = null;
@@ -217,19 +219,20 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		out.append(
 				"<html><head><style>" +
 				".title { font-size: 1.2em; }" +
-				".match { padding-top: 5px; }" +
+				".matchBlock { padding-top: 5px; }" +
 				".text { font-family: monospace; }" +
+				".match { color: #ff0000; }" +
 				"</style>" +
 				"</head><body>"
 				);
 		out.append("<div class=\"title\">"+file.getAbsolutePath()+"</div>");
 		out.append("<div class=\"subtitle\">"+r.size()+" matches in file.</div>");
 		for(GrepResult g : r){
-			out.append("<div class=\"match\"><em>Match on line "+g.getLineNumber()+"</em><br /><div class=\"text\">");
+			out.append("<div class=\"matchBlock\"><em>Match on line "+g.getLineNumber()+"</em><br /><div class=\"text\">");
 			List<String> cont = g.getLinesBefore(context);
 			for(String ln : cont)
 				out.append(htmlEscape(ln)+"<br />");
-			out.append("<strong>"+htmlEscape(g.getLine())+"</strong>");
+			out.append("<strong>"+highlightHtmlEscape(g.getLine(),g.getMatcher(),"span class=\"match\"")+"</strong>");
 			cont = g.getLinesAfter(context);
 			for(String ln : cont)
 				out.append("<br />"+htmlEscape(ln));
@@ -311,6 +314,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		
 		// content
 		fileListModel = new FileListModel();
+		// TODO convert to table to show more data, like number of matches
 		fileList = new JList(fileListModel);
 		fileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		fileList.addListSelectionListener(this);
@@ -490,6 +494,23 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 				out.append(c);
 			}
 		}
+		return out.toString();
+	}
+	
+	private static String highlightHtmlEscape(String text, Matcher m, String tag){
+		m.reset();
+		StringBuilder out = new StringBuilder();
+		int nextChar = 0;
+		int space = tag.indexOf(" ");
+		String tagClose = space > -1 ? tag.substring(0,space) : tag;
+		while(m.find()){
+			out.append(htmlEscape(text.substring(nextChar,m.start())));
+			out.append("<"+tag+">");
+			out.append(htmlEscape(text.substring(m.start(),m.end())));
+			out.append("</"+tagClose+">");
+			nextChar = m.end();
+		}
+		out.append(text.substring(nextChar));
 		return out.toString();
 	}
 	

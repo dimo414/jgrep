@@ -1,3 +1,21 @@
+/*
+ * Copyright 2010 Michael Diamond - http://www.DigitalGemstones.com
+ * 
+ * This file is part of jGrep.
+ * 
+ *  jGrep is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  jGrep is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with jGrep.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package grep;
 
 import java.io.BufferedReader;
@@ -19,8 +37,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A Grep-style in-file find utility.
+ * A Grep-style in-file find utility.  Output of main method does not
+ * currently replicate Grep's output format.  Although this class is
+ * intended to replicate Grep's functionality for use in Java programs,
+ * it is not intended to be a replacement for grep on the command line.
  * 
+ * @version 1.0.0
  * @author Michael Diamond
  */
 // TODO test utility:

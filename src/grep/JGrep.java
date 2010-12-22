@@ -337,11 +337,12 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		replaceMItem.addActionListener(this);
 		optMenu.add(replaceMItem);
 		
-		optMenu.add(new JSeparator());
-		
-		helpMItem = new JMenuItem("Pattern Help");
-		helpMItem.addActionListener(this);
-		optMenu.add(helpMItem);
+		// TODO uncomment this once implemented
+	//	optMenu.add(new JSeparator());
+	//	
+	//	helpMItem = new JMenuItem("Pattern Help");
+	//	helpMItem.addActionListener(this);
+	//	optMenu.add(helpMItem);
 		
 		// create all panels
 		JPanel body = new JPanel(new BorderLayout());

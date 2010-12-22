@@ -523,7 +523,10 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 
 		@Override
 		public Object getElementAt(int row) {
-			return files.get(row).getAbsolutePath().substring(rootPath.length());
+			String file = files.get(row).getAbsolutePath();
+			if(file.equals(rootPath)) // if the root /is/ the file
+				return files.get(row).getName();
+			return files.get(row).getAbsolutePath().substring(rootPath.length()+1);
 		}
 		
 		public File getFileAt(int row){

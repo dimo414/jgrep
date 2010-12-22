@@ -231,25 +231,27 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		ArrayList<GrepResult> r = result.get(file);
 		StringBuilder out = new StringBuilder();
 		out.append(
-				"<html><head><style>" +
+				"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">" +
+				"<html><head><style type=\"text/css\">" +
 				".title { font-size: 1.2em; }" +
 				".matchBlock { padding-top: 5px; }" +
 				".text { font-family: monospace; }" +
 				".match { color: #ff0000; }" +
 				"</style>" +
+				"<title>"+file.getAbsolutePath()+"</title>" +
 				"</head><body>"
 				);
 		out.append("<div class=\"title\">"+file.getAbsolutePath()+"</div>");
 		out.append("<div class=\"subtitle\">"+r.size()+" matches in file.</div>");
 		for(GrepResult g : r){
-			out.append("<div class=\"matchBlock\"><em>Match on line "+g.getLineNumber()+"</em><br /><div class=\"text\">");
+			out.append("<div class=\"matchBlock\"><em>Match on line "+g.getLineNumber()+"</em><br><div class=\"text\">");
 			List<String> cont = g.getLinesBefore(context);
 			for(String ln : cont)
-				out.append(htmlEscape(ln)+"<br />");
+				out.append(htmlEscape(ln)+"<br>");
 			out.append("<strong>"+highlightHtmlEscape(g.getLine(),g.getMatcher(),"span class=\"match\"")+"</strong>");
 			cont = g.getLinesAfter(context);
 			for(String ln : cont)
-				out.append("<br />"+htmlEscape(ln));
+				out.append("<br>"+htmlEscape(ln));
 			out.append("</div></div>");
 		}
 		out.append("</body></html>");
@@ -585,7 +587,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 			out.append("</"+tagClose+">");
 			nextChar = m.end();
 		}
-		out.append(text.substring(nextChar));
+		out.append(htmlEscape(text.substring(nextChar)));
 		return out.toString();
 	}
 	

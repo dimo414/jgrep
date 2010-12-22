@@ -12,6 +12,7 @@ import java.awt.event.WindowAdapter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -438,7 +439,25 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	            saveProperties(file,"User-Saved Grep State");
 	        }
 		} else if(src == replaceMItem){
-			// TODO replace functionality
+			if(result == null || result.size() == 0){
+				warning("No results found","There is no active result set to replace text on.");
+				return;
+			}
+			String rep = JOptionPane.showInputDialog(this, 
+					"What text would you like to replace matches with?\n\n" +
+					"    Use '$0' to reference the match.\n\n" +
+					"    Warning: this is a destructive operation, and there is a potential for data loss.\n" +
+					"    Be sure to have a backup before running this command.", "Replace Matches\n", JOptionPane.QUESTION_MESSAGE);
+			if(rep != null)
+				try {
+					Grep.replace(result, rep);
+				} catch(IllegalArgumentException e){
+					warning("Invalid Replace String","The string you wish to replace matches with is invalid.  Most likely, you need" +
+							"to replace any '$' mentions with '\\$'.");
+				} catch (IOException e) {
+					warning("Replace Operation Failed","Running replace failed.  jGrep has tried to save the original state of affected files" +
+							"in *.orig files, you may need to manually repair them.\n\nThe error reported was: "+e.getMessage());
+				}
 		} else if(src == helpMItem){
 			// TODO show info on regex usage
 		} 

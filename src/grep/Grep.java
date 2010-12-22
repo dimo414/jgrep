@@ -1,8 +1,13 @@
 package grep;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -141,6 +146,7 @@ public class Grep {
 					res.add(gr);
 				curLines.remove();
 			}
+			in.close();
 		} catch (FileNotFoundException e) {
 			// report somehow that the file was not found
 		}
@@ -157,6 +163,50 @@ public class Grep {
 			return new GrepResult(lineNum,ln,m,lines.subList(0, i),lines.subList(i+1, lines.size()));
 		}
 		return null;
+	}
+	
+	public static void replace(HashMap<File,ArrayList<GrepResult>> result, String replace) throws IOException{
+		if(result == null)
+			return;
+		ArrayList<File> origs = new ArrayList<File>();
+		for(Entry<File,ArrayList<GrepResult>> e : result.entrySet()){
+			File f = e.getKey();
+			ArrayList<GrepResult> al = e.getValue();
+	
+			String forigStr = f.getAbsolutePath()+".orig";
+			File forig = new File(forigStr);
+			for(int i = 1; forig.exists(); i++){
+				forig = new File(forig.getAbsolutePath()+i);
+			}
+			if(!f.renameTo(forig))
+				throw new IOException("Failed to rename File.");
+			origs.add(forig);
+			
+			String eol = FileFormat.getEOL(forig);
+			Scanner in = new Scanner(forig);
+			FileWriter out = new FileWriter(f);
+			
+			int line = 0;
+			int nextMatch = 0;
+			while(in.hasNextLine()){
+				String inLine = in.nextLine();
+				line++;
+				if(!in.hasNextLine()) // if we're on the last line, we don't want to append /another/ line
+					eol = "";
+				if(nextMatch < al.size() && line == al.get(nextMatch).getLineNumber()){
+					out.write(al.get(nextMatch).getMatcher().replaceAll(replace)+eol);
+					nextMatch++;
+				} else {
+					out.write(inLine+eol);
+				}
+			}
+			in.close();
+			out.close();
+		}
+		
+		for(File orig : origs){
+			orig.delete();
+		}
 	}
 	
 	/**
@@ -264,5 +314,48 @@ public class Grep {
 			}
 			return false;
 		}
+	}
+	
+	private static class FileFormat {
+	    public enum FileType { WINDOWS, UNIX, MAC, UNKNOWN }
+
+	    private static final char CR = '\r';
+	    private static final char LF = '\n';
+	    
+	    public static String getEOL(File f) throws IOException {
+	    	switch (discover(f)){
+	    	case WINDOWS:
+	    		return "\r\n";
+	    	case MAC:
+	    		return "\r";
+	    	case UNIX:
+	    	case UNKNOWN: // treat as unix
+	    	default:
+	    		return "\n";
+	    	}
+	    }
+
+	    public static FileType discover(File f) throws IOException {    
+
+	        Reader reader = new BufferedReader(new FileReader(f));
+	        FileType result = discover(reader);
+	        reader.close();
+	        return result;
+	    }
+
+	    private static FileType discover(Reader reader) throws IOException {
+	        int c;
+	        while ((c = reader.read()) != -1) {
+	            switch(c) {        
+	            case LF: return FileType.UNIX;
+	            case CR: {
+	                if (reader.read() == LF) return FileType.WINDOWS;
+	                return FileType.MAC;
+	            }
+	            default: continue;
+	            }
+	        }
+	        return FileType.UNKNOWN;
+	    }
 	}
 }

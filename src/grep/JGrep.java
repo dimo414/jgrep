@@ -1,3 +1,21 @@
+/*
+ * Copyright 2010 Michael Diamond - http://www.DigitalGemstones.com
+ * 
+ * This file is part of jGrep.
+ * 
+ *  jGrep is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  jGrep is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with jGrep.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package grep;
 
 import grep.Grep.GrepResult;
@@ -51,6 +69,26 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+/**
+ * A graphical in-file text search utility, intended to provide much
+ * of the usefulness of GNU Grep to people regularly using graphical tools
+ * and not command line tools.  Users can do literal text searches and
+ * use Java's regular expression engine to find text, as well as browse
+ * the matches and surrounding context of the files being explored.
+ * 
+ * Additional functionality includes the ability to save past searches
+ * and find/replace on all matches.  Potential future features include
+ * saving output to a set of files and deeper customization of the files
+ * to search through - currently only directories or individual files can
+ * be specified.
+ * 
+ * This program is not intended to be a replacement for Grep, and as such
+ * cannot replicate some of Grep's command line functionality like piping
+ * input and output.
+ * 
+ * @version 1.0.0
+ * @author Michael Diamond
+ */
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{

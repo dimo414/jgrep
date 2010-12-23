@@ -93,10 +93,14 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private static final long serialVersionUID = 9035033306521981994L;
 	static{
 		try {
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			// throw new RuntimeException(e);
-			// do nothing
+			try {
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+			} catch (Exception e2){
+				// throw new RuntimeException(e);
+				// do nothing, stick with default look and feel
+			}
 		}
 	}
 	
@@ -272,6 +276,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		out.append(
 				"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">" +
 				"<html><head><style type=\"text/css\">" +
+				"body { font-family: sans-serif; }" +
 				".title { font-size: 1.2em; }" +
 				".matchBlock { padding-top: 5px; }" +
 				".text { font-family: monospace; }" +

@@ -42,14 +42,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import javax.swing.AbstractListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -59,6 +57,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -68,6 +67,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
 
 /**
  * A graphical in-file text search utility, intended to provide much
@@ -124,8 +124,8 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JTextField extensionsField;
 	private JButton searchButton;
 	private JButton stopButton;
-	private JList fileList;
-	private FileListModel fileListModel;
+	private JTable fileTable;
+	private FileListModel fileTableModel;
 	private JEditorPane resultPane;
 	private JLabel resultsText;
 	private JCheckBox recurseBox;
@@ -259,11 +259,12 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 				resultPane.setText("");
 				int matchCount = 0;
 				String absPat = grepPath.getAbsolutePath();
-				fileListModel.setFiles(result.keySet(),absPat);
+				fileTableModel.setFiles(result.keySet(),absPat);
 				for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
 					matchCount += e.getValue().size();
 				}
-				fileList.setSelectedIndex(0);resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
+				fileTable.changeSelection(0, 0, false, false);
+				resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
 			}
 			searchButton.setVisible(true);
 			stopButton.setVisible(false);
@@ -412,13 +413,14 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		nPanel.add(stopButton);
 		
 		// content
-		fileListModel = new FileListModel();
-		// TODO convert to table to show more data, like number of matches
-		fileList = new JList(fileListModel);
-		fileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-		fileList.addListSelectionListener(this);
-		JScrollPane fileScroll = new JScrollPane(fileList);
-		fileScroll.setPreferredSize(new Dimension(200,100));
+		fileTableModel = new FileListModel();
+		fileTable = new JTable(fileTableModel);
+		fileTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		fileTable.getSelectionModel().addListSelectionListener(this);
+		// TODO enable sorting - currently it breaks file selection
+		//fileList.setAutoCreateRowSorter(true);
+		JScrollPane fileScroll = new JScrollPane(fileTable);
+		fileScroll.setPreferredSize(new Dimension(230,100));
 		content.add(fileScroll,BorderLayout.WEST);
 		
 		resultPane = new JEditorPane("text/html","");
@@ -466,7 +468,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		
 		// final setup
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setSize(750,600);
+		setSize(800,600);
 		setLocationRelativeTo(null);
 		setVisible(true);
 		
@@ -597,9 +599,9 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	@Override
 	public void valueChanged(ListSelectionEvent evt) {
 		Object src = evt.getSource();
-		if(src == fileList){
+		if(src == fileTable.getSelectionModel()){
 			if (evt.getValueIsAdjusting() == false) {
-		        if (fileList.getSelectedIndex() == -1) {
+		        if (fileTable.getSelectedRow() == -1) {
 			        // nothing selected, nothing to change
 		        } else {
 		        	buildResultPane();
@@ -621,7 +623,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	//
 	
 	private void buildResultPane(){
-    	File f = fileListModel.getFileAt(fileList.getSelectedIndex());
+    	File f = fileTableModel.getFileAt(fileTable.getSelectedRow());
     	resultPane.setText(grepToHTML(f,(Integer)contextSpinner.getValue()));
     	resultPane.setSelectionStart(0);
     	resultPane.setSelectionEnd(0);
@@ -631,25 +633,38 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		JOptionPane.showMessageDialog(this, message, title,JOptionPane.WARNING_MESSAGE);
 	}
 	
-	private class FileListModel extends AbstractListModel {
+	private class FileListModel extends AbstractTableModel {
 		private static final long serialVersionUID = -7045093302929107928L;
 		private ArrayList<File> files = new ArrayList<File>();
 		private String rootPath = "";
 
 		public void setFiles(Set<File> f, String rp) {
-			fireIntervalRemoved(this, 0, files.size());
 			files = new ArrayList<File>(f);
 			rootPath = rp;
 			Collections.sort(files);
-			fireIntervalAdded(this, 0, files.size());
+			fireTableStructureChanged();
+			fileTable.getColumnModel().getColumn(1).setPreferredWidth(25);
 		}
+		
+		public String getColumnName(int col) {
+	        if(col == 0)
+	        	return "Files";
+	        else if(col == 1)
+	        	return "Matches";
+	        throw new RuntimeException("Attempted to get out of bounds column");
+	    }
 
 		@Override
-		public Object getElementAt(int row) {
-			String file = files.get(row).getAbsolutePath();
-			if(file.equals(rootPath)) // if the root /is/ the file
-				return files.get(row).getName();
-			return files.get(row).getAbsolutePath().substring(rootPath.length()+1);
+		public Object getValueAt(int row, int col) {
+			if(col == 0){
+				String file = files.get(row).getAbsolutePath();
+				if(file.equals(rootPath)) // if the root /is/ the file
+					return files.get(row).getName();
+				return files.get(row).getAbsolutePath().substring(rootPath.length()+1);
+			} else if(col == 1){
+				return result.get(files.get(row)).size();
+			}
+			throw new RuntimeException("Attempted to get out of bounds column");
 		}
 		
 		public File getFileAt(int row){
@@ -659,8 +674,13 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 
 		@Override
-		public int getSize() {
+		public int getRowCount() {
 			return files.size();
+		}
+
+		@Override
+		public int getColumnCount() {
+			return 2;
 		}
 		
 	}

@@ -112,7 +112,10 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JMenuItem openMItem;
 	private JMenuItem saveMItem;
 	private JMenuItem replaceMItem;
-	private JMenuItem helpMItem;
+	private JMenuItem charHelpMItem;
+	private JPanel charHelpPanel;
+	private JMenuItem quantHelpMItem;
+	private JPanel quantHelpPanel;
 	private JFileChooser fileChooser;
 	private JFileChooser saveChooser;
 	private JTextField fileField;
@@ -132,6 +135,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JSpinner contextSpinner;
 
 	public JGrep(){
+		super("jGrep");
 		// looking in two different places to workaround known Java bug with Vista and 7
 		// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6519127
 		String path = System.getenv("USERPROFILE");
@@ -342,12 +346,18 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		replaceMItem.addActionListener(this);
 		optMenu.add(replaceMItem);
 		
-		// TODO uncomment this once implemented
-	//	optMenu.add(new JSeparator());
-	//	
-	//	helpMItem = new JMenuItem("Pattern Help");
-	//	helpMItem.addActionListener(this);
-	//	optMenu.add(helpMItem);
+		optMenu.add(new JSeparator());
+		
+		JMenu helpMenu = new JMenu("Pattern Help");
+		optMenu.add(helpMenu);
+		
+		charHelpMItem = new JMenuItem("Characters and Character Classes");
+		charHelpMItem.addActionListener(this);
+		helpMenu.add(charHelpMItem);
+		
+		quantHelpMItem = new JMenuItem("Special Quantifier Characters");
+		quantHelpMItem.addActionListener(this);
+		helpMenu.add(quantHelpMItem);
 		
 		// create all panels
 		JPanel body = new JPanel(new BorderLayout());
@@ -377,7 +387,6 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		
 		nPanel.add(new TSeparator(SwingConstants.VERTICAL));
 		
-		// TODO some easy way to show basic regex operators
 		nPanel.add(new JLabel("Pattern:"));
 		
 		patternField = new JTextField(8);
@@ -460,6 +469,47 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		setSize(750,600);
 		setLocationRelativeTo(null);
 		setVisible(true);
+		
+		// help panels
+		charHelpPanel = new JPanel(new BorderLayout());
+		charHelpPanel.add(new JLabel("<html><h4>Java Regular Expressions Character Reference</h4></html>"),BorderLayout.NORTH);
+		charHelpPanel.add(new JLabel("<html><table>" +
+				"<tr><td><strong><u>Char</u></strong></td><td><strong><u>Matches</u></strong></td></tr>" +
+				"<tr><td><em>x</em></td><td>The literal character '<em>x</em>'</td></tr>" +
+				"<tr><td>.</td><td>Matches any character</td></tr>" +
+				"<tr><td>\\x<em>hh</em></td><td>The character with hex code <em>hh</em></td></tr>" +
+				"<tr><td>\\u<em>hhhh</em></td><td>The character with hex code <em>hhhh</em></td></tr>" +
+				"<tr><td>\\t</td><td>The tab character</td></tr>" +
+				"<tr><td>\\d</td><td>Any digit - [0-9]</td></tr>" +
+				"<tr><td>\\D</td><td>Any non-digit - [^0-9]</td></tr>" +
+				"<tr><td>\\s</td><td>Any whitespace character - [ \\t\\n\\x0B\\f\\r]</td></tr>" +
+				"<tr><td>\\S</td><td>Any non-whitespace character - [^\\s]</td></tr>" +
+				"<tr><td>\\w</td><td>Any word character - [a-zA-Z_0-9]</td></tr>" +
+				"<tr><td>\\W</td><td>Any non-word character - [^\\w]</td></tr>" +
+				"<tr><td>\\\\</td><td>The backslash character - single backslash escapes special chars</td></tr>" +
+				"</table><br></html>"),BorderLayout.CENTER);
+		charHelpPanel.add(new SwingLink("Full Java RegEx Documentation",
+				"http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#sum"),BorderLayout.SOUTH);
+		
+		quantHelpPanel = new JPanel(new BorderLayout());
+		quantHelpPanel.add(new JLabel("<html><h4>Java Regular Expressions Quantifier Reference</h4></html>"),BorderLayout.NORTH);
+		quantHelpPanel.add(new JLabel("<html><table>" +
+				"<tr><td><strong><u>Quantifier</u></strong></td><td><strong><u>Meaning</u></strong></td></tr>" +
+				"<tr><td>[<em>xyz</em>]</td><td>Any character in the set</td></tr>" +
+				"<tr><td>[^<em>xyz</em>]</td><td>Any character not in the set</td></td></tr>" +
+				"<tr><td>[<em>x</em>-<em>z</em>]</td><td>Any character in the range <em>x</em> to <em>z</em></td></tr>" +
+				"<tr><td>(<em>xyz</em>)</td><td>A group of characters</td></tr>" +
+				"<tr><td>^</td><td>Marks the begining of the line</td></tr>" +
+				"<tr><td>$</td><td>Marks the end of the line</td></tr>" +
+				"<tr><td><em>x</em>?</td><td><em>x</em> is optional (once or not at all)</td></tr>" +
+				"<tr><td><em>x</em>*</td><td><em>x</em> zero or more times in a row</td></tr>" +
+				"<tr><td><em>x</em>+</td><td><em>x</em> one or more times in a row</td></tr>" +
+				"<tr><td><em>x</em>{<em>n</em>}</td><td><em>x</em> exactly <em>n</em> times</td></tr>" +
+				"<tr><td>$0</td><td><em>when replacing</em> refers to the matched text</td></tr>" +
+				"<tr><td>$1-$9</td><td><em>when replacing</em> refers to groups, '()', in the matched text</td></tr>" +
+				"</table><br></html>"),BorderLayout.CENTER);
+		quantHelpPanel.add(new SwingLink("Full Java RegEx Documentation",
+		"http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#sum"),BorderLayout.SOUTH);
 	}
 	
 	//
@@ -487,11 +537,14 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 				warning("No results found","There is no active result set to replace text on.");
 				return;
 			}
-			String rep = JOptionPane.showInputDialog(this, 
-					"What text would you like to replace matches with?\n\n" +
-					"    Use '$0' to reference the match.\n\n" +
-					"    Warning: this is a destructive operation, and there is a potential for data loss.\n" +
-					"    Be sure to have a backup before running this command.", "Replace Matches\n", JOptionPane.QUESTION_MESSAGE);
+			String rep = JOptionPane.showInputDialog(this, new JLabel("<html>" + 
+					"<h4>What text would you like to replace matches with?</h4>" +
+					"<p>Use '$0' to reference the match.</p><br>" +
+					"<p><strong>Warning:</strong> this is a destructive operation, and there is a potential for data loss.<br>" +
+					"Be sure to have a backup before running this command.</p><br>" +
+					"</html>")
+					, "Replace Matches"
+					, JOptionPane.QUESTION_MESSAGE);
 			if(rep != null)
 				try {
 					Grep.replace(result, rep);
@@ -500,11 +553,16 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 							"to replace any '$' mentions with '\\$'.");
 				} catch (IOException e) {
 					warning("Replace Operation Failed","Running replace failed.  jGrep has tried to save the original state of affected files" +
-							"in *.orig files, you may need to manually repair them.\n\nThe error reported was: "+e.getMessage());
+							"in *.orig files, you may need to manually repair them.\n\nThe error reported was: "+
+							e.getClass().getName()+": "+e.getMessage());
 				}
-		} else if(src == helpMItem){
-			// TODO show info on regex usage
-		} 
+		}
+		// help menu
+		else if(src == charHelpMItem){
+			JOptionPane.showMessageDialog(this, charHelpPanel, "RegEx Character Help", JOptionPane.PLAIN_MESSAGE);
+		} else if(src == quantHelpMItem){
+			JOptionPane.showMessageDialog(this, quantHelpPanel, "RegEx Quantifier Help", JOptionPane.PLAIN_MESSAGE);
+		}
 		
 		// file selection
 		else if(src == fileField){

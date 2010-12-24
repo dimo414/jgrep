@@ -529,13 +529,17 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 			int returnVal = saveChooser.showOpenDialog(this);
 	        if (returnVal == JFileChooser.APPROVE_OPTION) {
 	            File file = saveChooser.getSelectedFile();
-	            loadProperties(file);
+	            if(!loadProperties(file))
+	            	warning("Failed to Open",
+	            			"The search you tried to open appears to be missing or corrupt, and could not be opened.");
 	        }
 		} else if(src == saveMItem){
 			int returnVal = saveChooser.showSaveDialog(this);
 	        if (returnVal == JFileChooser.APPROVE_OPTION) {
 	            File file = saveChooser.getSelectedFile();
-	            saveProperties(file,"User-Saved Grep State");
+	            if(!saveProperties(file,"User-Saved Grep State"))
+	            	warning("Failed to Save",
+	            			"The search could not be saved to that location.");
 	        }
 		} else if(src == replaceMItem){
 			if(result == null || result.size() == 0){
@@ -604,7 +608,6 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		Object src = evt.getSource();
 		if(src == fileTable.getSelectionModel()){
 			if (evt.getValueIsAdjusting() == false) {
-				System.out.println(fileTable.getSelectedRow());
 		        if (fileTable.getSelectedRow() == -1) {
 			        // nothing selected, nothing to change
 		        } else {

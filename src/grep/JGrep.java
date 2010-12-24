@@ -417,8 +417,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		fileTable = new JTable(fileTableModel);
 		fileTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		fileTable.getSelectionModel().addListSelectionListener(this);
-		// TODO enable sorting - currently it breaks file selection
-		//fileList.setAutoCreateRowSorter(true);
+		fileTable.setAutoCreateRowSorter(true);
 		JScrollPane fileScroll = new JScrollPane(fileTable);
 		fileScroll.setPreferredSize(new Dimension(230,100));
 		content.add(fileScroll,BorderLayout.WEST);
@@ -670,7 +669,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		public File getFileAt(int row){
 			if(row < 0)
 				return null;
-			return files.get(row);
+			return files.get(fileTable.convertRowIndexToModel(row));
 		}
 
 		@Override

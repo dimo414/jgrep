@@ -423,6 +423,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		content.add(fileScroll,BorderLayout.WEST);
 		
 		resultPane = new JEditorPane("text/html","");
+		resultPane.setEditable(false);
 		JScrollPane resultScroll = new JScrollPane(resultPane);
 		content.add(resultScroll,BorderLayout.CENTER);
 		

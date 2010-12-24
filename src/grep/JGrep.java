@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -257,14 +256,18 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		public void run() {
 			if(result != null){
 				resultPane.setText("");
-				int matchCount = 0;
 				String absPat = grepPath.getAbsolutePath();
 				fileTableModel.setFiles(result.keySet(),absPat);
-				for(Entry<File, ArrayList<GrepResult>> e : result.entrySet()){
-					matchCount += e.getValue().size();
+				if(result.size() == 0){
+					resultsText.setText("No matches found");
+				} else {
+					int matchCount = 0;
+					for(ArrayList<GrepResult> al : result.values()){
+						matchCount += al.size();
+					}
+					fileTable.changeSelection(0, 0, false, false);
+					resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
 				}
-				fileTable.changeSelection(0, 0, false, false);
-				resultsText.setText(matchCount+" match"+(matchCount == 1 ? "" : "es")+" in "+result.size()+" file"+(result.size() == 1 ? "" : "s"));
 			}
 			searchButton.setVisible(true);
 			stopButton.setVisible(false);
@@ -601,6 +604,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		Object src = evt.getSource();
 		if(src == fileTable.getSelectionModel()){
 			if (evt.getValueIsAdjusting() == false) {
+				System.out.println(fileTable.getSelectedRow());
 		        if (fileTable.getSelectedRow() == -1) {
 			        // nothing selected, nothing to change
 		        } else {

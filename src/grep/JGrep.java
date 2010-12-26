@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
@@ -465,11 +466,12 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		sPanelR.add(new TSeparator(SwingConstants.VERTICAL));
 		
 		sPanelR.add(new JLabel("Use RegEx:"));
-		
+			
 		regexBox = new JCheckBox();
 		sPanelR.add(regexBox);
 		
 		// final setup
+		setIconImage(new ImageIcon(getClass().getClassLoader().getResource("jGrep Logo 64.png")).getImage());
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(800,600);
 		setLocationRelativeTo(null);

@@ -50,8 +50,7 @@ import java.util.regex.Pattern;
 // file less than MAX_LINES
 // match before MAX_LINES
 // match in last MAX_LINES
-// Recusive grep
-// TODO find/replace functionality
+// Recursive grep
 // TODO grep a set of files
 // TODO additional filters, age, size, etc.
 public class Grep {

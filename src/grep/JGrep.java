@@ -104,7 +104,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 	}
 	
-	private File stateFile = new File(".jGrep.conf");
+	private File stateFile = new File(".jGrep.conf"); // TODO this does not work in the Windows Installer on Vista/7
 	private File grepPath;
 	private Properties props;
 	private HashMap<File,ArrayList<GrepResult>> result = null;
@@ -454,6 +454,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		sPanelR.add(new JLabel("Recurse Directories:"));
 		
 		recurseBox = new JCheckBox();
+		recurseBox.setSelected(true);
 		sPanelR.add(recurseBox);
 		
 		sPanelR.add(new TSeparator(SwingConstants.VERTICAL));
@@ -461,6 +462,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		sPanelR.add(new JLabel("Case Insensitive:"));
 		
 		caseBox = new JCheckBox();
+		caseBox.setSelected(true);
 		sPanelR.add(caseBox);
 		
 		sPanelR.add(new TSeparator(SwingConstants.VERTICAL));

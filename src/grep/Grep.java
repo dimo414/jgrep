@@ -318,6 +318,7 @@ public class Grep {
 		public ExtensionFilter(String[] exs){
 			exts = new String[exs.length];
 			for(int i = 0; i < exs.length; i++){
+				exs[i] = exs[i].replaceAll("\\.", "").trim();
 				if(exs[i].equals("*")){
 					all = true;
 					return;

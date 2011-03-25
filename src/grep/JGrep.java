@@ -86,7 +86,7 @@ import javax.swing.table.AbstractTableModel;
  * cannot replicate some of Grep's command line functionality like piping
  * input and output.
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * @author Michael Diamond
  */
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
@@ -104,7 +104,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		}
 	}
 	
-	private File stateFile = new File(".jGrep.conf"); // TODO this does not work in the Windows Installer on Vista/7
+	private File stateFile = new File(".jGrep.conf");
 	private File grepPath;
 	private Properties props;
 	private HashMap<File,ArrayList<GrepResult>> result = null;
@@ -134,17 +134,24 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JProgressBar progressBar;
 	private JSpinner contextSpinner;
 
-	public JGrep(){
+	public JGrep(boolean localState){
 		super("jGrep");
+		grepPath = getUserDir();
+		
+		if(!localState){//this is the installed version of jGrep
+			stateFile = new File(getUserDir(),".jGrep.conf");
+		}
+		initComponents();
+		loadProperties(stateFile);
+	}
+	
+	private File getUserDir(){
 		// looking in two different places to workaround known Java bug with Vista and 7
 		// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6519127
 		String path = System.getenv("USERPROFILE");
 		if(path == null)
 			path = System.getProperty("user.home");
-		grepPath = new File(path);
-		
-		initComponents();
-		loadProperties(stateFile);
+		 return new File(path);
 	}
 	
 	private boolean loadProperties(File f) {
@@ -744,6 +751,6 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	}
 	
 	public static void main(String[] args){
-		new JGrep();
+		new JGrep(args.length == 0);
 	}
 }

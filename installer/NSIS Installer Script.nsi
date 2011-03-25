@@ -77,7 +77,7 @@ SectionEnd
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\jGrep"
   CreateShortCut "$SMPROGRAMS\jGrep\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe"
-  CreateShortCut "$SMPROGRAMS\jGrep\jGrep.lnk" "$INSTDIR\jGrep_1.0.jar" "" "$INSTDIR\jGrep.ico"
+  CreateShortCut "$SMPROGRAMS\jGrep\jGrep.lnk" "$INSTDIR\jGrep_1.0.jar" "1" "$INSTDIR\jGrep.ico"
 SectionEnd
 
 ;--------------------------------

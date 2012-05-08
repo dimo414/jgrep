@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -115,6 +117,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 	private JMenuItem charHelpMItem;
 	private JPanel charHelpPanel;
 	private JMenuItem quantHelpMItem;
+	private JMenuItem aboutMItem;
 	private JPanel quantHelpPanel;
 	private JFileChooser fileChooser;
 	private JFileChooser saveChooser;
@@ -327,7 +330,6 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
  				dispose();
  				
  				saveProperties(stateFile,"State on close");
- 				
  				System.exit(0);
  			}
  		});
@@ -362,6 +364,10 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		
 		JMenu helpMenu = new JMenu("Pattern Help");
 		optMenu.add(helpMenu);
+		
+		aboutMItem = new JMenuItem("About jGrep");
+		aboutMItem.addActionListener(this);
+		optMenu.add(aboutMItem);
 		
 		charHelpMItem = new JMenuItem("Characters and Character Classes");
 		charHelpMItem.addActionListener(this);
@@ -481,7 +487,7 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 		
 		// final setup
 		setIconImage(new ImageIcon(getClass().getClassLoader().getResource("jGrep Logo 64.png")).getImage());
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setSize(800,600);
 		setLocationRelativeTo(null);
 		setVisible(true);
@@ -582,6 +588,14 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
 			JOptionPane.showMessageDialog(this, charHelpPanel, "RegEx Character Help", JOptionPane.PLAIN_MESSAGE);
 		} else if(src == quantHelpMItem){
 			JOptionPane.showMessageDialog(this, quantHelpPanel, "RegEx Quantifier Help", JOptionPane.PLAIN_MESSAGE);
+		}
+		// about menu
+		else if(src == aboutMItem){
+			try {
+				SwingLink.open(new URI("http://www.digitalgemstones.com/code/tools/jGrep.php"));
+			} catch (URISyntaxException e) {
+				throw new RuntimeException("Invalid link to DigitalGemstones.");
+			}
 		}
 		
 		// file selection

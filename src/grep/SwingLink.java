@@ -70,7 +70,7 @@ public class SwingLink extends JLabel {
 		return text;
 	}
 	
-	private static void open(URI uri) {
+	public static void open(URI uri) {
         if (Desktop.isDesktopSupported()) {
                 Desktop desktop = Desktop.getDesktop();
                 try {

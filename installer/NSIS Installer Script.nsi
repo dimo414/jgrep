@@ -12,8 +12,8 @@
 ;General
 
   ;Name and file
-  Name "jGrep 1.0"
-  OutFile "jGrepInstaller_1.0.exe"
+  Name "jGrep 1.0.1"
+  OutFile "jGrepInstaller_1.0.1.exe"
 
   ;Default installation folder
   InstallDir "$PROGRAMFILES\jGrep"
@@ -56,7 +56,7 @@ Section "jGrep (required)" SecDummy
   ;Files to be installed
   SetOutPath "$INSTDIR"
   
-  File "jGrep_1.0.jar"
+  File "jGrep_1.0.1.jar"
   File "jGrep.ico"
 
   SetOutPath "$INSTDIR"
@@ -77,7 +77,7 @@ SectionEnd
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\jGrep"
   CreateShortCut "$SMPROGRAMS\jGrep\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe"
-  CreateShortCut "$SMPROGRAMS\jGrep\jGrep.lnk" "$INSTDIR\jGrep_1.0.jar" "1" "$INSTDIR\jGrep.ico"
+  CreateShortCut "$SMPROGRAMS\jGrep\jGrep.lnk" "$INSTDIR\jGrep_1.0.1.jar" "1" "$INSTDIR\jGrep.ico"
 SectionEnd
 
 ;--------------------------------

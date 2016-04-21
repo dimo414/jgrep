@@ -89,7 +89,7 @@ import javax.swing.table.AbstractTableModel;
  * cannot replicate some of Grep's command line functionality like piping
  * input and output.
  * 
- * @version 1.0.1
+ * @version 1.0.2
  * @author Michael Diamond
  */
 public class JGrep extends JFrame implements ActionListener, ListSelectionListener, ChangeListener {
@@ -493,44 +493,44 @@ public class JGrep extends JFrame implements ActionListener, ListSelectionListen
         
         // help panels
         charHelpPanel = new JPanel(new BorderLayout());
-        charHelpPanel.add(new JLabel("<html><h4>Java Regular Expressions Character Reference</h4></html>"),BorderLayout.NORTH);
+        charHelpPanel.add(new JLabel("<html><h4>Java Regular Expressions Character Reference</h4></html>"), BorderLayout.NORTH);
         charHelpPanel.add(new JLabel("<html><table>" +
                 "<tr><td><strong><u>Char</u></strong></td><td><strong><u>Matches</u></strong></td></tr>" +
-                "<tr><td><em>x</em></td><td>The literal character '<em>x</em>'</td></tr>" +
-                "<tr><td>.</td><td>Matches any character</td></tr>" +
-                "<tr><td>\\x<em>hh</em></td><td>The character with hex code <em>hh</em></td></tr>" +
-                "<tr><td>\\u<em>hhhh</em></td><td>The character with hex code <em>hhhh</em></td></tr>" +
-                "<tr><td>\\t</td><td>The tab character</td></tr>" +
-                "<tr><td>\\d</td><td>Any digit - [0-9]</td></tr>" +
-                "<tr><td>\\D</td><td>Any non-digit - [^0-9]</td></tr>" +
-                "<tr><td>\\s</td><td>Any whitespace character - [ \\t\\n\\x0B\\f\\r]</td></tr>" +
-                "<tr><td>\\S</td><td>Any non-whitespace character - [^\\s]</td></tr>" +
-                "<tr><td>\\w</td><td>Any word character - [a-zA-Z_0-9]</td></tr>" +
-                "<tr><td>\\W</td><td>Any non-word character - [^\\w]</td></tr>" +
-                "<tr><td>\\\\</td><td>The backslash character - single backslash escapes special chars</td></tr>" +
-                "</table><br></html>"),BorderLayout.CENTER);
+                "<tr><td><code><em>x</em></code></td><td>The literal character '<code>x</code>'</td></tr>" +
+                "<tr><td><code>.</code></td><td>Matches any character</td></tr>" +
+                "<tr><td><code>\\x<em>hh</em></code></td><td>The character with hex code <code><em>hh</em></code></td></tr>" +
+                "<tr><td><code>\\u<em>hhhh</em></code></td><td>The character with hex code <code><em>hhhh</em></code></td></tr>" +
+                "<tr><td><code>\\t</code></td><td>The tab character</td></tr>" +
+                "<tr><td><code>\\d</code></td><td>Any digit - <code>[0-9]</code></td></tr>" +
+                "<tr><td><code>\\D</code></td><td>Any non-digit - <code>[^0-9]</code></td></tr>" +
+                "<tr><td><code>\\s</code></td><td>Any whitespace character - <code>[ \\t\\n\\x0B\\f\\r]</code></td></tr>" +
+                "<tr><td><code>\\S</code></td><td>Any non-whitespace character - <code>[^\\s]</code></td></tr>" +
+                "<tr><td><code>\\w</code></td><td>Any word character - <code>[a-zA-Z_0-9]</code></td></tr>" +
+                "<tr><td><code>\\W</code></td><td>Any non-word character - <code>[^\\w]</code></td></tr>" +
+                "<tr><td><code>\\\\</code></td><td>The backslash character - single backslash escapes special chars</td></tr>" +
+                "</table><br></html>"), BorderLayout.CENTER);
         charHelpPanel.add(new SwingLink("Full Java RegEx Documentation",
-                "http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#sum"),BorderLayout.SOUTH);
+            "http://download.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html#sum"), BorderLayout.SOUTH);
         
         quantHelpPanel = new JPanel(new BorderLayout());
-        quantHelpPanel.add(new JLabel("<html><h4>Java Regular Expressions Quantifier Reference</h4></html>"),BorderLayout.NORTH);
+        quantHelpPanel.add(new JLabel("<html><h4>Java Regular Expressions Quantifier Reference</h4></html>"), BorderLayout.NORTH);
         quantHelpPanel.add(new JLabel("<html><table>" +
                 "<tr><td><strong><u>Quantifier</u></strong></td><td><strong><u>Meaning</u></strong></td></tr>" +
-                "<tr><td>[<em>xyz</em>]</td><td>Any character in the set</td></tr>" +
-                "<tr><td>[^<em>xyz</em>]</td><td>Any character not in the set</td></td></tr>" +
-                "<tr><td>[<em>x</em>-<em>z</em>]</td><td>Any character in the range <em>x</em> to <em>z</em></td></tr>" +
-                "<tr><td>(<em>xyz</em>)</td><td>A group of characters</td></tr>" +
-                "<tr><td>^</td><td>Marks the begining of the line</td></tr>" +
-                "<tr><td>$</td><td>Marks the end of the line</td></tr>" +
-                "<tr><td><em>x</em>?</td><td><em>x</em> is optional (once or not at all)</td></tr>" +
-                "<tr><td><em>x</em>*</td><td><em>x</em> zero or more times in a row</td></tr>" +
-                "<tr><td><em>x</em>+</td><td><em>x</em> one or more times in a row</td></tr>" +
-                "<tr><td><em>x</em>{<em>n</em>}</td><td><em>x</em> exactly <em>n</em> times</td></tr>" +
-                "<tr><td>$0</td><td><em>when replacing</em> refers to the matched text</td></tr>" +
-                "<tr><td>$1-$9</td><td><em>when replacing</em> refers to groups, '()', in the matched text</td></tr>" +
-                "</table><br></html>"),BorderLayout.CENTER);
+                "<tr><td><code>[<em>xyz</em>]</code></td><td>Any character in the set</td></tr>" +
+                "<tr><td><code>[^<em>xyz</em>]</code></td><td>Any character not in the set</td></td></tr>" +
+                "<tr><td><code>[<em>x</em>-<em>z</em>]</code></td><td>Any character in the range <em>x</em> to <em>z</em></td></tr>" +
+                "<tr><td><code>(<em>xyz</em>)</code></td><td>A group of characters</td></tr>" +
+                "<tr><td><code>^</code></td><td>Marks the begining of the line</td></tr>" +
+                "<tr><td><code>$</code></td><td>Marks the end of the line</td></tr>" +
+                "<tr><td><code><em>x</em>?</code></td><td><em>x</em> is optional (once or not at all)</td></tr>" +
+                "<tr><td><code><em>x</em>*</code></td><td><em>x</em> zero or more times in a row</td></tr>" +
+                "<tr><td><code><em>x</em>+</code></td><td><em>x</em> one or more times in a row</td></tr>" +
+                "<tr><td><code><em>x</em>{<em>n</em>}</code></td><td><em>x</em> exactly <em>n</em> times</td></tr>" +
+                "<tr><td><code>$0</code></td><td><em>when replacing</em> refers to the matched text</td></tr>" +
+                "<tr><td><code>$1-$9</code></td><td><em>when replacing</em> refers to <code>(...)<code> groups in the matched text</td></tr>" +
+                "</table><br></html>"), BorderLayout.CENTER);
         quantHelpPanel.add(new SwingLink("Full Java RegEx Documentation",
-        "http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#sum"),BorderLayout.SOUTH);
+            "http://download.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html#sum"), BorderLayout.SOUTH);
     }
     
     //

@@ -22,8 +22,8 @@ public class SwingLink extends JLabel {
   private static final long serialVersionUID = 8273875024682878518L;
 
   private volatile String text;
-  private final URI uri;
-  private volatile LinkStyle inactive = LinkStyle.UNVISITED;
+  private volatile URI uri;
+  private volatile LinkStyle inactive;
 
   /**
    * Constructs a SwingLink with the given text that will launch the given URI when clicked.
@@ -39,16 +39,12 @@ public class SwingLink extends JLabel {
    */
   public SwingLink(String text, URI uri) {
     super(text);
-    if (text == null || uri == null) {
-      throw new NullPointerException();
-    }
-    this.uri = uri;
-    setToolTipText(uri.toString());
+    setLink(uri);
 
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        open(uri);
+        open(SwingLink.this.uri);
         inactive = LinkStyle.VISITED;
       }
 
@@ -64,6 +60,28 @@ public class SwingLink extends JLabel {
         setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
       }
     });
+  }
+
+  /**
+   * Updates the linked URI, and resets the link style to unvisited.
+   */
+  public void setLink(URI uri) {
+    if (uri == null) {
+      throw new NullPointerException();
+    }
+    this.uri = uri;
+    setToolTipText(uri.toString());
+    inactive = LinkStyle.UNVISITED;
+    updateText(inactive);
+  }
+
+  /**
+   * Updates the linked URI, and resets the link style to unvisited.
+   *
+   * @throws IllegalArgumentException if uri is not a valid URI
+   */
+  public void setLink(String uri) {
+    setLink(URI.create(uri));
   }
 
   /**

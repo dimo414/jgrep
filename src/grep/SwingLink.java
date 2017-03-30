@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2010-2017  Michael Diamond
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package grep;
 
 import java.awt.Color;
@@ -13,7 +29,7 @@ import javax.swing.JOptionPane;
 
 /**
  * A JLabel that behaves like a hyperlink, launching the default browser when clicked.
- * 
+ *
  * The link is styled like a standard &lt;a&gt; tag in a browser; blue and underlined
  * by default, and changing color as the user interacts with it.
  */
@@ -27,7 +43,7 @@ public class SwingLink extends JLabel {
 
   /**
    * Constructs a SwingLink with the given text that will launch the given URI when clicked.
-   * 
+   *
    * @throws IllegalArgumentException if uri is not a valid URI
    */
   public SwingLink(String text, String uri) {
@@ -86,7 +102,7 @@ public class SwingLink extends JLabel {
 
   /**
    * Styles the text like a link, in addition to the default behavior.
-   * 
+   *
    * {@inheritDoc}
    */
   @Override
@@ -97,13 +113,12 @@ public class SwingLink extends JLabel {
     this.text = text;
     // inactive is still null when called from JLabel's constructor
     updateText(inactive == null ? LinkStyle.UNVISITED : inactive);
-    
   }
 
   private void updateText(LinkStyle style) {
     super.setText(style.format(text));
   }
-  
+
   public URI getLink() {
     return uri;
   }
@@ -123,7 +138,8 @@ public class SwingLink extends JLabel {
         desktop.browse(uri);
       } catch (IOException e) {
         JOptionPane.showMessageDialog(null,
-            "Failed to open " + uri + " - your computer is likely misconfigured.",
+            "Failed to open " + uri + " - your computer is likely misconfigured.\n" +
+            "Error Message: " + e.getMessage(),
             "Cannot Open Link", JOptionPane.WARNING_MESSAGE);
       }
     } else {
@@ -131,18 +147,18 @@ public class SwingLink extends JLabel {
           "Cannot Open Link", JOptionPane.WARNING_MESSAGE);
     }
   }
-  
+
   private enum LinkStyle {
     UNVISITED(new Color(0x00, 0x00, 0x99), true),
     ACTIVE(new Color(0x99, 0x00, 0x00), false),
     VISITED(new Color(0x80, 0x00, 0x80), true);
-    
+
     private static final String FORMAT_STRING =
         "<html><span style=\"color: #%02X%02X%02X;\">%s</span></html>";
-    
+
     private final Color color;
     private final boolean underline;
-    
+
     LinkStyle(Color c, boolean u) {
       color = c;
       underline = u;

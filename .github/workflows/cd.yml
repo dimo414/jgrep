@@ -1,0 +1,34 @@
+name: CD
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: javac
+      run: |
+        md bin
+        javac -d bin -sourcepath src src/grep/*.java
+    - name: sanity check
+      run: java -cp bin grep.Grep
+    - name: JAR
+      run: |
+        copy src/*.png,src/*.ico -Destination bin
+        jar cvfe installer/jGrep_1.0.2.jar grep.JGrep -C bin .
+    - name: Upload JAR
+      uses: actions/upload-artifact@v1
+      with:
+        name: jGrep_1.0.2.jar
+        path: installer/jGrep_1.0.2.jar
+    - name: NSIS
+      uses: joncloud/makensis-action@v1
+      with:
+        script-file: "installer/NSIS Installer Script.nsi"
+    - name: Upload EXE
+      uses: actions/upload-artifact@v1
+      with:
+        name: jGrepInstaller_1.0.2.exe
+        path: installer/jGrepInstaller_1.0.2.exe

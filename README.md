@@ -1,40 +1,30 @@
 # jGrep
 
-You should simply be able to run the jGrep Jar file distributed
-from http://www.DigitalGemstones.com without any trouble.  However
-if you download the source code, or have any difficulty with the
-JAR, you can follow the below instructions to build and run jGrep.
+You can download the jGrep Jar from the
+[Releases](https://github.com/dimo414/jgrep/releases) page. There
+is also a Windows installer for Windows users.
 
-Building this program from the command line, you can call
-
-    $ javac grep/*.java
-    $ java grep.JGrep
-
-from the `src` directory of the repository.
+The source is currently built by "hand" with `javac`, see the
+[build action](https://github.com/dimo414/jgrep/blob/483074a/.github/workflows/cd.yml#L14)
+for an example command if trying to build from source.
 
 ## Reporting issues
 
-If you have trouble with jGrep, you can contact me at 
-http://www.digitalgemstones.com/contact.php
-Please include the operating system and version of Java you are running,
-along with any other details you can, especially including stack traces,
-and a description of what you did to cause the error.
+If you have trouble with jGrep please open an issue here on GitHub.
 
-## Copyright
+---
 
-Copyright 2010 Michael Diamond - http://www.DigitalGemstones.com
+Copyright (C) 2010  Michael Diamond
 
-This file is part of jGrep.
-
-jGrep is free software: you can redistribute it and/or modify
+This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-jGrep is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with jGrep.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.

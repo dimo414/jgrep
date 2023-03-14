@@ -1,5 +1,12 @@
 # jGrep
 
+jGrep is a cross-platform graphical file search utility, modeled after
+[`grep`](https://www.gnu.org/software/grep/manual/grep.html), but built from the ground up
+in Java. It lets you quickly search for either a string of text or matches to a regular
+expression in a single file or a directory in an easy and intuitive user interface.
+Additional features include a find/replace utility and the ability to save and load past
+searches.
+
 You can download the jGrep Jar from the
 [Releases](https://github.com/dimo414/jgrep/releases) page. There
 is also a Windows installer for Windows users.
